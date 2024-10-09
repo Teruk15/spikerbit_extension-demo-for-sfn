@@ -379,106 +379,106 @@ namespace spikerbit {
     }
 
 
-    // //% group="Experiments helper"
-    // //% weight=30
-    // //% block="get max singal from $duration (ms) || * $constant"
-    // //% expandableArgumentMode="enable"
-    // //% duration.shadow=timePicker
-    // //% duration.defl=1000
-    // //% constant.defl=1
-    // export function getMaxSignal(duration: number, constant?: number): number {
-    //     if (duration < 0 || constant < 0) {
-    //         return undefined;
-    //     }
+    //% group="Experiments helper"
+    //% weight=30
+    //% block="get max singal from $duration (ms) || * $constant"
+    //% expandableArgumentMode="enable"
+    //% duration.shadow=timePicker
+    //% duration.defl=1000
+    //% constant.defl=1
+    export function getMaxSignal(duration: number, constant?: number): number {
+        if (duration < 0 || constant < 0) {
+            return undefined;
+        }
 
-    //     const startTimer = control.millis();
-    //     let val = 0;
-    //     let max_val = 0;
+        const startTimer = control.millis();
+        let val = 0;
+        let max_val = 0;
         
-    //     while (control.millis() - startTimer < duration) {
-    //         val = getEnvelope();
+        while (control.millis() - startTimer < duration) {
+            val = getEnvelope();
 
-    //         if (max_val < val) {
-    //             max_val = val;
-    //         }
+            if (max_val < val) {
+                max_val = val;
+            }
 
-    //         serial.writeLine("");
-    //     }
+            serial.writeLine("");
+        }
 
-    //     return max_val * constant;
-    // }
+        return max_val * constant;
+    }
 
-    // //% group="Experiments helper"
-    // //% weight=29
-    // //% block="get spikes from $duration (ms)"
-    // //% duration.shadow=timePicker
-    // //% duration.defl=3000
-    // export function getSpikes(duration: number): number {
-    //     basic.pause(50); //To avoid weird spike happen when turning on
+    //% group="Experiments helper"
+    //% weight=29
+    //% block="get spikes from $duration (ms)"
+    //% duration.shadow=timePicker
+    //% duration.defl=3000
+    export function getSpikes(duration: number): number {
+        basic.pause(50); //To avoid weird spike happen when turning on
 
-    //     if (duration < 0) {
-    //         return undefined;
-    //     }
+        if (duration < 0) {
+            return undefined;
+        }
         
-    //     const THRESHOLD = 50;
+        const THRESHOLD = 50;
 
-    //     let signal = 0;
-    //     let counter = 0;
-    //     let check_once = false;
+        let signal = 0;
+        let counter = 0;
+        let check_once = false;
 
-    //     const startTimer = control.millis();
-    //     while (control.millis() - startTimer < duration) {
-    //         signal = getEnvelope();
+        const startTimer = control.millis();
+        while (control.millis() - startTimer < duration) {
+            signal = getEnvelope();
 
-    //         while (signal > THRESHOLD) {
-    //             if (control.millis() - startTimer > duration) {
-    //                 return -1;
-    //             }
-    //             signal = getEnvelope();
-    //             check_once = true;
-    //             serial.writeLine("");
-    //         }
+            while (signal > THRESHOLD) {
+                if (control.millis() - startTimer > duration) {
+                    return -1;
+                }
+                signal = getEnvelope();
+                check_once = true;
+                serial.writeLine("");
+            }
 
-    //         if (check_once) {
-    //             counter++;
-    //             check_once = false;
-    //         }
+            if (check_once) {
+                counter++;
+                check_once = false;
+            }
 
-    //         serial.writeLine("");
-    //     }
+            serial.writeLine("");
+        }
 
-    //     return counter;
-    // }
+        return counter;
+    }
 
 
-    // //% group="Experiments helper"
-    // //% weight=28
-    // //% block="get reaction time|| with threshold $threshold"
-    // //% expandableArgumentMode="enable"
-    // //% threshold.defl=50
-    // export function getReactionTime(threshold?: number): number {
-    //     basic.pause(10); //To avoid weird spike happen when turning on
+    //% group="Experiments helper"
+    //% weight=28
+    //% block="get reaction time|| with threshold $threshold"
+    //% expandableArgumentMode="enable"
+    //% threshold.defl=50
+    export function getReactionTime(threshold?: number): number {
+        basic.pause(10); //To avoid weird spike happen when turning on
 
-    //     if (threshold < 0) {
-    //         return undefined;
-    //     }
+        if (threshold < 0) {
+            return undefined;
+        }
 
-    //     const time_limit = 10000; // Maximum 10 seconds to make reaction
-    //     let signal = 0;
-    //     let result_time = 0;
+        const time_limit = 10000; // Maximum 10 seconds to make reaction
+        let signal = 0;
+        let result_time = 0;
 
-    //     const startTime = control.millis();
+        const startTime = control.millis();
 
-    //     signal = getEnvelope();
-    //     while (signal < threshold) {
-    //         signal = getEnvelope();
-    //         result_time = control.millis() - startTime;
-    //         if (result_time > time_limit) return time_limit;
-    //         serial.writeLine("");
-    //     }
+        signal = getEnvelope();
+        while (signal < threshold) {
+            signal = getEnvelope();
+            result_time = control.millis() - startTime;
+            if (result_time > time_limit) return time_limit;
+            serial.writeLine("");
+        }
 
-    //     return result_time;
-    // }
+        return result_time;
+    }
 
     //% group="Other"
     //% weight=20
