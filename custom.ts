@@ -232,8 +232,8 @@ namespace spikerbit {
 
     //% group="Initialization"
     //% weight=45 
-    //% block="StartMuscleRecording"
-    export function startRecordingEMG(): void {
+    //% block="startMuscleRecording"
+    export function startMuscleRecording(): void {
         signal_label = "EMG";
         signalType = Signal.EMG;
         pins.digitalWritePin(DigitalPin.P8, 1)
@@ -252,8 +252,8 @@ namespace spikerbit {
 
     //% group="Initialization"
     //% weight=44 
-    //% block="StartHeartRecording"
-    export function startRecordingECG(): void {
+    //% block="startHeartRecording"
+    export function startHeartRecording(): void {
         signal_label = "ECG";
         signalType = Signal.ECG;
         pins.digitalWritePin(DigitalPin.P8, 0)
@@ -271,8 +271,8 @@ namespace spikerbit {
 
     //% group="Initialization"
     //% weight=43 
-    //% block="StartBrainRecording"
-    export function startRecordingEEG(): void {
+    //% block="startBrainRecording"
+    export function startBrainRecording(): void {
         signal_label = "EEG";
         signalType = Signal.EEG;
         pins.digitalWritePin(DigitalPin.P8, 0)
@@ -290,8 +290,8 @@ namespace spikerbit {
 
     //% group="Raw data"
     //% weight=42
-    //% block="getSignal"
-    export function getSignal(): number {
+    //% block="signal"
+    export function signal(): number {
         if (buffer.length > 0) {
             return buffer[read_index];
         }
@@ -301,36 +301,47 @@ namespace spikerbit {
     }
 
     /**
-     * Return user defined seconds of recorded signal
+     * Return two seconds of recorded signal
      */
 
     //% group="Raw data"
     //% weight=41 
-    //% block="getSignalBlock || from last $ms (ms)"
-    //% ms.shadow=timePicker
-    //% ms.defl = 5000
-    export function getBuffer(ms: number): number[] {
-        if (ms == TIME_RANGE) {
-            return buffer;
-        }
-        else if (ms < 0 || ms > TIME_RANGE) {
-            return [0];
-        }
-        else {
-            let required_size = Math.ceil((FS * (ms / 1000.0)));;
-
-            let start_idx = (read_index - (required_size - 1) + MAX_BUFFER_SIZE) % MAX_BUFFER_SIZE; // Start index (wrapped)
-            let end_idx = (read_index + 1) % MAX_BUFFER_SIZE; // End index is always read_idx + 1 (assuming read_index is newest)
-
-            if (start_idx < end_idx) {
-                // If the range fits without wrapping around
-                return buffer.slice(start_idx, end_idx);
-            } else {
-                // If the range wraps around, slice in two parts then concatinate
-                return buffer.slice(start_idx, MAX_BUFFER_SIZE).concat(buffer.slice(0, end_idx));
-            }
-        }
+    //% block="signalBlock"
+    export function signalBlock(): number[] {
+        return buffer;
     }
+
+    // /**
+    //  * Return user defined seconds of recorded signal
+    //  */
+
+    // //% group="Raw data"
+    // //% weight=41 
+    // //% block="signalBlock  || from last $ms (ms)"
+    // //% ms.shadow=timePicker
+    // //% ms.defl = 5000
+    // export function getBuffer(ms: number): number[] {
+    //     if (ms == TIME_RANGE) {
+    //         return buffer;
+    //     }
+    //     else if (ms < 0 || ms > TIME_RANGE) {
+    //         return [0];
+    //     }
+    //     else {
+    //         let required_size = Math.ceil((FS * (ms / 1000.0)));;
+
+    //         let start_idx = (read_index - (required_size - 1) + MAX_BUFFER_SIZE) % MAX_BUFFER_SIZE; // Start index (wrapped)
+    //         let end_idx = (read_index + 1) % MAX_BUFFER_SIZE; // End index is always read_idx + 1 (assuming read_index is newest)
+
+    //         if (start_idx < end_idx) {
+    //             // If the range fits without wrapping around
+    //             return buffer.slice(start_idx, end_idx);
+    //         } else {
+    //             // If the range wraps around, slice in two parts then concatinate
+    //             return buffer.slice(start_idx, MAX_BUFFER_SIZE).concat(buffer.slice(0, end_idx));
+    //         }
+    //     }
+    // }
 
     /**
          * Return last envelope value
@@ -338,13 +349,13 @@ namespace spikerbit {
 
     //% group="Processed data"
     //% weight=40
-    //% block="getControlSignal"
-    export function getEnvelope(): number {
+    //% block="musclePower"
+    export function musclePower(): number {
         if (buffer.length > 0) {
             // Obtain the signal + set baseline to 0
-            let signal = getSignal() - 512;
+            let measurement = signal() - 512;
             // Rectify the signal
-            let rectified_signal = Math.abs(signal);
+            let rectified_signal = Math.abs(measurement);
 
             // Serial Out the signal
             return convolution(rectified_signal);
@@ -362,8 +373,8 @@ namespace spikerbit {
 
     //% group="Processed data"
     //% weight=39
-    //% block="getHeartRate"
-    export function getHeartRate(): number {
+    //% block="heartRate"
+    export function heartRate(): number {
         return bpmECG;
     }
 
@@ -373,20 +384,20 @@ namespace spikerbit {
 
     //% group="Processed data"
     //% weight=38
-    //% block="getAlphaWaves"
-    export function getAlphaWaves(): number {
+    //% block="brainAlphaPower"
+    export function brainAlphaPower(): number {
         return eegAlphaPower;
     }
 
 
     //% group="Experiments helper"
     //% weight=30
-    //% block="get max singal from $duration (ms) || * $constant"
+    //% block="max singal from $duration (ms) || * $constant"
     //% expandableArgumentMode="enable"
     //% duration.shadow=timePicker
     //% duration.defl=1000
     //% constant.defl=1
-    export function getMaxSignal(duration: number, constant?: number): number {
+    export function maxSignal(duration: number, constant?: number): number {
         if (duration < 0 || constant < 0) {
             return undefined;
         }
@@ -396,7 +407,7 @@ namespace spikerbit {
         let max_val = 0;
         
         while (control.millis() - startTimer < duration) {
-            val = getEnvelope();
+            val = musclePower();
 
             if (max_val < val) {
                 max_val = val;
@@ -410,10 +421,10 @@ namespace spikerbit {
 
     //% group="Experiments helper"
     //% weight=29
-    //% block="get spikes from $duration (ms)"
+    //% block="number of spikes from $duration (ms)"
     //% duration.shadow=timePicker
     //% duration.defl=3000
-    export function getSpikes(duration: number): number {
+    export function spikes(duration: number): number {
         basic.pause(50); //To avoid weird spike happen when turning on
 
         if (duration < 0) {
@@ -428,13 +439,13 @@ namespace spikerbit {
 
         const startTimer = control.millis();
         while (control.millis() - startTimer < duration) {
-            signal = getEnvelope();
+            signal = musclePower();
 
             while (signal > THRESHOLD) {
                 if (control.millis() - startTimer > duration) {
                     return -1;
                 }
-                signal = getEnvelope();
+                signal = musclePower();
                 check_once = true;
                 serial.writeLine("");
             }
@@ -453,10 +464,10 @@ namespace spikerbit {
 
     //% group="Experiments helper"
     //% weight=28
-    //% block="get reaction time|| with threshold $threshold"
+    //% block="reaction time|| with threshold $threshold"
     //% expandableArgumentMode="enable"
     //% threshold.defl=50
-    export function getReactionTime(threshold?: number): number {
+    export function reactionTime(threshold?: number): number {
         basic.pause(10); //To avoid weird spike happen when turning on
 
         if (threshold < 0) {
@@ -469,9 +480,9 @@ namespace spikerbit {
 
         const startTime = control.millis();
 
-        signal = getEnvelope();
+        signal = musclePower();
         while (signal < threshold) {
-            signal = getEnvelope();
+            signal = musclePower();
             result_time = control.millis() - startTime;
             if (result_time > time_limit) return time_limit;
             serial.writeLine("");
@@ -482,7 +493,7 @@ namespace spikerbit {
 
     //% group="Other"
     //% weight=20
-    //% block="Print $shape Signal ||for $duration (ms)"
+    //% block="print $shape signal ||for $duration (ms)"
     //% shape.defl = 0
     //% duration.shadow=timePicker
     //% expandableArgumentMode="enable"
@@ -495,17 +506,17 @@ namespace spikerbit {
             while (true) {
                 if (shape == SignalShape.CONTROL) {
                     // Obtain the signal + set baseline to 0
-                    let signal = getSignal() - 512;
+                    let measurement = signal() - 512;
                     // Rectify the signal
-                    let rectified_signal = Math.abs(signal);
+                    let rectified_signal = Math.abs(measurement);
 
                     // Serial Out the signal
                     serial.writeValue(signal_label, convolution(rectified_signal));
-                    // serial.writeValue(signal_label, getEnvelope());
+                    // serial.writeValue(signal_label, musclePower());
                 }
                 else {
                     // Serial Out the signal
-                    serial.writeValue(signal_label, getSignal());
+                    serial.writeValue(signal_label, signal());
                 }
             }
         }
@@ -516,18 +527,18 @@ namespace spikerbit {
             while (control.millis() - startTime < duration) {
                 if (shape == SignalShape.CONTROL) {
                     // Obtain the signal + set baseline to 0
-                    let signal = getSignal() - 512;
+                    let measurement = signal() - 512;
                     // Rectify the signal
-                    let rectified_signal = Math.abs(signal);
+                    let rectified_signal = Math.abs(measurement);
 
                     // Serial Out the signal
                     serial.writeValue(signal_label, convolution(rectified_signal));
-                    // serial.writeValue(signal_label, getEnvelope());
+                    // serial.writeValue(signal_label, musclePower());
                 }
                 else {
                     // Serial Out the signal
                     debug_count++;
-                    serial.writeValue(signal_label, getSignal());
+                    serial.writeValue(signal_label, signal());
                 }
             }
             basic.showNumber(debug_count);
