@@ -413,7 +413,7 @@ namespace spikerbit {
                 max_val = val;
             }
 
-            serial.writeLine("");
+            basic.pause(0);
         }
 
         return max_val * constant;
@@ -431,7 +431,7 @@ namespace spikerbit {
             return undefined;
         }
         
-        const THRESHOLD = 50;
+        const THRESHOLD = 25;
 
         let signal = 0;
         let counter = 0;
@@ -442,20 +442,22 @@ namespace spikerbit {
             signal = musclePower();
 
             while (signal > THRESHOLD) {
+                // Means user is holding
                 if (control.millis() - startTimer > duration) {
                     return -1;
                 }
                 signal = musclePower();
                 check_once = true;
-                serial.writeLine("");
+                basic.pause(0);
             }
 
+            // Allow counter to go up only once above the threshold
             if (check_once) {
                 counter++;
                 check_once = false;
             }
 
-            serial.writeLine("");
+            basic.pause(0);
         }
 
         return counter;
@@ -485,7 +487,7 @@ namespace spikerbit {
             signal = musclePower();
             result_time = control.millis() - startTime;
             if (result_time > time_limit) return time_limit;
-            serial.writeLine("");
+            basic.pause(0);
         }
 
         return result_time;
@@ -506,13 +508,13 @@ namespace spikerbit {
             while (true) {
                 if (shape == SignalShape.CONTROL) {
                     // Obtain the signal + set baseline to 0
-                    let measurement = signal() - 512;
+                    // let measurement = signal() - 512;
                     // Rectify the signal
-                    let rectified_signal = Math.abs(measurement);
+                    // let rectified_signal = Math.abs(measurement);
 
                     // Serial Out the signal
-                    serial.writeValue(signal_label, convolution(rectified_signal));
-                    // serial.writeValue(signal_label, musclePower());
+                    // serial.writeValue(signal_label, convolution(rectified_signal));
+                    serial.writeValue(signal_label, musclePower());
                 }
                 else {
                     // Serial Out the signal
@@ -527,13 +529,13 @@ namespace spikerbit {
             while (control.millis() - startTime < duration) {
                 if (shape == SignalShape.CONTROL) {
                     // Obtain the signal + set baseline to 0
-                    let measurement = signal() - 512;
+                    // let measurement = signal() - 512;
                     // Rectify the signal
-                    let rectified_signal = Math.abs(measurement);
+                    // let rectified_signal = Math.abs(measurement);
 
                     // Serial Out the signal
-                    serial.writeValue(signal_label, convolution(rectified_signal));
-                    // serial.writeValue(signal_label, musclePower());
+                    // serial.writeValue(signal_label, convolution(rectified_signal));
+                    serial.writeValue(signal_label, musclePower());
                 }
                 else {
                     // Serial Out the signal
